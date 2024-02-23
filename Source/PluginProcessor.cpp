@@ -166,7 +166,8 @@ bool FirstDistoAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* FirstDistoAudioProcessor::createEditor()
 {
-    return new FirstDistoAudioProcessorEditor (*this);
+//    return new FirstDistoAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(this);
 }
 
 //==============================================================================
@@ -183,6 +184,15 @@ void FirstDistoAudioProcessor::setStateInformation (const void* data, int sizeIn
     // whose contents will have been created by the getStateInformation() call.
 }
 
+juce::AudioProcessorValueTreeState::ParameterLayout
+    FirstDistoAudioProcessor::createParameterLayout()
+{
+        juce::AudioProcessorValueTreeState::ParameterLayout layout;
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("Dry/Wet", 1),"Dry/Wet",juce::NormalisableRange<float>(0.f, 100.f, 1.f, 1.f), 0.f));
+        
+        return layout;
+    }
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

@@ -30,7 +30,7 @@ void FirstDistoAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText ("Uh oh", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void FirstDistoAudioProcessorEditor::resized()
