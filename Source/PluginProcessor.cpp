@@ -106,16 +106,18 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     mixerLeft.prepare(spec);
     mixerRight.prepare(spec);
 
-    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/cassette_recorder_mono.wav");
-    if(path.exists()){
+    juce::File pathLeft("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_l.wav");
+    juce::File pathRight("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_r.wav");
+
+    if(pathLeft.exists()){
         
         auto& convolutionLeft = leftChain.template get<0>();
         auto& convolutionRight = rightChain.template get<0>();
 
         
         
-        convolutionLeft.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 1024);
-        convolutionRight.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 1024);
+        convolutionLeft.loadImpulseResponse(pathLeft, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
+        convolutionRight.loadImpulseResponse(pathRight, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
 
     }
     
