@@ -14,6 +14,8 @@ struct ChainSettings
 {
     float dryWet { 0 };
 };
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 //==============================================================================
 /**
 */
@@ -66,8 +68,17 @@ public:
     
 private:
     using Convolution = juce::dsp::Convolution;
+    using MixControl = juce::dsp::DryWetMixer<float>;
     
-    juce::dsp::ProcessorChain<Convolution> stereoChain;
+    juce::dsp::ProcessorChain<Convolution> leftChain, rightChain;
+    MixControl mixerLeft, mixerRight;
+    
+    
+    
+    enum ChainPositions
+    {
+        DryWet,
+    };
     
     
     

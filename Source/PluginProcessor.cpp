@@ -97,31 +97,45 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // initialisation that you need..
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
-    spec.numChannels = 2;
+    spec.numChannels = 1;
     spec.sampleRate = sampleRate;
     
 
-    
-//    auto dir = juce::File::getCurrentWorkingDirectory();
-//
-//    int numTries = 0;
-//
-//    while(! dir.getChildFile("Resources").exists() && numTries++ < 15){
-//        dir = dir.getParentDirectory();
-//    }
-//
-    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/cassette_recorder.wav");
+    leftChain.prepare(spec);
+    rightChain.prepare(spec);
+    mixerLeft.prepare(spec);
+    mixerRight.prepare(spec);
+
+    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/cassette_recorder_mono.wav");
     if(path.exists()){
         
-        auto& convolution = stereoChain.template get<0>();
+        auto& convolutionLeft = leftChain.template get<0>();
+        auto& convolutionRight = rightChain.template get<0>();
+
         
-        convolution.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 1024);
+        
+        convolutionLeft.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 1024);
+        convolutionRight.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 1024);
+
     }
     
-    stereoChain.prepare(spec);
-    stereoChain.reset();
+    auto chainSettings = getChainSettings(apvts);
     
-//    auto chainSettings = getChainSettings(juce::AudioProcessorValueTreeState &apvts);
+//    auto mixerLeft = MixControl();
+//    auto mixerRight = MixControl();
+    
+    
+    mixerLeft.setWetMixProportion(chainSettings.dryWet);
+    mixerRight.setWetMixProportion(chainSettings.dryWet);
+
+    
+    leftChain.reset();
+    rightChain.reset();
+    
+//    mixerLeft.reset();
+//    mixerRight.reset();
+    
+
     
 }
 
@@ -172,14 +186,38 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    auto chainSettings = getChainSettings(apvts);
+    
+//    auto mixerLeft = MixControl();
+//    auto mixerRight = MixControl();
+    
+    mixerLeft.setWetMixProportion(chainSettings.dryWet);
+    mixerRight.setWetMixProportion(chainSettings.dryWet);
+    
     juce::dsp::AudioBlock<float> block(buffer);
     
+    auto leftBlock = block.getSingleChannelBlock(0);
+    auto rightBlock = block.getSingleChannelBlock(1);
     
-    juce::dsp::ProcessContextReplacing<float> context(block);
+//    juce::dsp::ProcessContextReplacing<float> context(block);
     
-    stereoChain.process(context);
+    juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+    juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+
+//    auto& leftInBlock = leftContext.getInputBlock();
+//    auto& leftOutBlock = leftContext.getOutputBlock();
+//
+//    auto& rightInBlock = rightContext.getInputBlock();
+//    auto& rightOutBlock = rightContext.getOutputBlock();
     
+    mixerLeft.pushDrySamples(leftContext.getInputBlock());
+    mixerRight.pushDrySamples(rightContext.getInputBlock());
     
+    leftChain.process(leftContext);
+    rightChain.process(rightContext);
+    
+    mixerLeft.mixWetSamples(leftContext.getOutputBlock());
+    mixerRight.mixWetSamples(rightContext.getOutputBlock());
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
@@ -235,7 +273,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 {
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
         
-        layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("Dry/Wet", 1),"Dry/Wet",juce::NormalisableRange<float>(0.f, 100.f, 1.f, 1.f), 0.f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("Dry/Wet", 1),"Dry/Wet",juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 1.f), 0.f));
         
         return layout;
     }
