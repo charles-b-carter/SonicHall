@@ -61,6 +61,10 @@ public:
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
     
 private:
+    using Convolution = juce::dsp::Convolution;
+    
+    Convolution stereoChain;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstDistoAudioProcessor)
 };
