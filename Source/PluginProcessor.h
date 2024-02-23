@@ -10,6 +10,10 @@
 
 #include <JuceHeader.h>
 
+struct ChainSettings
+{
+    float dryWet { 0 };
+};
 //==============================================================================
 /**
 */
@@ -63,7 +67,9 @@ public:
 private:
     using Convolution = juce::dsp::Convolution;
     
-    Convolution stereoChain;
+    juce::dsp::ProcessorChain<Convolution> stereoChain;
+    
+    
     
     
     //==============================================================================

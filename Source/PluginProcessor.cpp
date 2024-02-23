@@ -100,7 +100,28 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     spec.numChannels = 2;
     spec.sampleRate = sampleRate;
     
+
+    
+//    auto dir = juce::File::getCurrentWorkingDirectory();
+//
+//    int numTries = 0;
+//
+//    while(! dir.getChildFile("Resources").exists() && numTries++ < 15){
+//        dir = dir.getParentDirectory();
+//    }
+//
+    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/cassette_recorder.wav");
+    if(path.exists()){
+        
+        auto& convolution = stereoChain.template get<0>();
+        
+        convolution.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 1024);
+    }
+    
     stereoChain.prepare(spec);
+    stereoChain.reset();
+    
+//    auto chainSettings = getChainSettings(juce::AudioProcessorValueTreeState &apvts);
     
 }
 
@@ -198,6 +219,15 @@ void FirstDistoAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
+{
+    ChainSettings settings;
+    
+   settings.dryWet = apvts.getRawParameterValue("Dry/Wet")->load();
+    
+    return settings;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout
