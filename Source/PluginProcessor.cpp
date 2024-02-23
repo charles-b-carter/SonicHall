@@ -153,6 +153,7 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     juce::dsp::AudioBlock<float> block(buffer);
     
+    
     juce::dsp::ProcessContextReplacing<float> context(block);
     
     stereoChain.process(context);
