@@ -96,42 +96,21 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::dsp::ProcessSpec spec;
-//    juce::dsp::ProcessSpec stereoSpec;
     
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = 2;
     spec.sampleRate = sampleRate;
     
-//    stereoSpec.maximumBlockSize = samplesPerBlock;
-//    stereoSpec.numChannels = 2;
-//    stereoSpec.sampleRate = sampleRate;
-    
-
-//    leftChain.prepare(spec);
-//    rightChain.prepare(spec);
-    leftConv.prepare(spec);
-//    rightConv.prepare(spec);
-    
+    stereoConv.prepare(spec);
     mixerLeft.prepare(spec);
     mixerRight.prepare(spec);
 
-//    juce::File pathLeft("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_l.wav");
-//    juce::File pathRight("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_r.wav");
       juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_stereo.wav");
     
 
-    if(/*pathLeft.exists()*/path.exists()){
+    if(path.exists()){
         
-//        auto& convolutionLeft = leftChain.template get<0>();
-//        auto& convolutionRight = rightChain.template get<0>();
-//        auto& convolutionStereo = leftChain.template get<0>();
-//         auto& convolutionLeft = leftConv;
-//         auto& convolutionRight = rightConv;
-
-
-        leftConv.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
-//        leftConv.loadImpulseResponse(pathLeft, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
-//        rightConv.loadImpulseResponse(pathRight, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
+        stereoConv.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
 
     }
     
@@ -143,9 +122,7 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
     mixerRight.setWetMixProportion(chainSettings.dryWet);
-//
-//    leftChain.reset();
-//    rightChain.reset();
+
 
     mixerLeft.reset();
     mixerRight.reset();
@@ -206,17 +183,14 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
     juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+    
     juce::dsp::ProcessContextReplacing<float> context(block);
-//
+
     mixerLeft.pushDrySamples(leftContext.getInputBlock());
     mixerRight.pushDrySamples(rightContext.getInputBlock());
     
-//    leftChain.process(leftContext);
-//    rightChain.process(rightContext);
-//    leftChain.process(context);
-    
-    leftConv.process(context);
-//    rightConv.process(rightContext);
+
+    stereoConv.process(context);
     
     mixerLeft.mixWetSamples(leftContext.getOutputBlock());
     mixerRight.mixWetSamples(rightContext.getOutputBlock());

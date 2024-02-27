@@ -15,7 +15,7 @@ struct ChainSettings
     float dryWet { 0 };
 };
 
-//juce::dsp::ConvolutionMessageQueue queue;
+juce::dsp::ConvolutionMessageQueue queue;
 
 
 
@@ -76,8 +76,8 @@ private:
     using MixControl = juce::dsp::DryWetMixer<float>;
     
 //    juce::dsp::ProcessorChain<Convolution> leftChain, rightChain;
-    Convolution leftConv{juce::dsp::Convolution::Latency{128}};
-    Convolution rightConv{juce::dsp::Convolution::Latency{128}};
+    Convolution stereoConv{juce::dsp::Convolution::Latency{128}, queue};
+    
     MixControl mixerLeft, mixerRight;
     
     
