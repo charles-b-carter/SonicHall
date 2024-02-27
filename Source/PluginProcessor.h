@@ -15,6 +15,10 @@ struct ChainSettings
     float dryWet { 0 };
 };
 
+//juce::dsp::ConvolutionMessageQueue queue;
+
+
+
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 //==============================================================================
 /**
@@ -67,10 +71,13 @@ public:
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
     
 private:
+    
     using Convolution = juce::dsp::Convolution;
     using MixControl = juce::dsp::DryWetMixer<float>;
     
-    juce::dsp::ProcessorChain<Convolution> leftChain, rightChain;
+//    juce::dsp::ProcessorChain<Convolution> leftChain, rightChain;
+    Convolution leftConv{juce::dsp::Convolution::Latency{128}};
+    Convolution rightConv{juce::dsp::Convolution::Latency{128}};
     MixControl mixerLeft, mixerRight;
     
     

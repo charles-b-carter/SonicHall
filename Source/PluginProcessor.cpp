@@ -96,49 +96,60 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::dsp::ProcessSpec spec;
+//    juce::dsp::ProcessSpec stereoSpec;
+    
     spec.maximumBlockSize = samplesPerBlock;
-    spec.numChannels = 1;
+    spec.numChannels = 2;
     spec.sampleRate = sampleRate;
     
+//    stereoSpec.maximumBlockSize = samplesPerBlock;
+//    stereoSpec.numChannels = 2;
+//    stereoSpec.sampleRate = sampleRate;
+    
 
-    leftChain.prepare(spec);
-    rightChain.prepare(spec);
+//    leftChain.prepare(spec);
+//    rightChain.prepare(spec);
+    leftConv.prepare(spec);
+//    rightConv.prepare(spec);
+    
     mixerLeft.prepare(spec);
     mixerRight.prepare(spec);
 
-    juce::File pathLeft("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_l.wav");
-    juce::File pathRight("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_r.wav");
+//    juce::File pathLeft("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_l.wav");
+//    juce::File pathRight("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_r.wav");
+      juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_stereo.wav");
+    
 
-    if(pathLeft.exists()){
+    if(/*pathLeft.exists()*/path.exists()){
         
-        auto& convolutionLeft = leftChain.template get<0>();
-        auto& convolutionRight = rightChain.template get<0>();
+//        auto& convolutionLeft = leftChain.template get<0>();
+//        auto& convolutionRight = rightChain.template get<0>();
+//        auto& convolutionStereo = leftChain.template get<0>();
+//         auto& convolutionLeft = leftConv;
+//         auto& convolutionRight = rightConv;
 
-        
-        
-        convolutionLeft.loadImpulseResponse(pathLeft, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
-        convolutionRight.loadImpulseResponse(pathRight, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
+
+        leftConv.loadImpulseResponse(path, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0);
+//        leftConv.loadImpulseResponse(pathLeft, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
+//        rightConv.loadImpulseResponse(pathRight, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, 0);
 
     }
     
     auto chainSettings = getChainSettings(apvts);
     
-//    auto mixerLeft = MixControl();
-//    auto mixerRight = MixControl();
+    auto mixerLeft = MixControl();
+    auto mixerRight = MixControl();
     
     
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
     mixerRight.setWetMixProportion(chainSettings.dryWet);
+//
+//    leftChain.reset();
+//    rightChain.reset();
 
-    
-    leftChain.reset();
-    rightChain.reset();
-    
-//    mixerLeft.reset();
-//    mixerRight.reset();
-    
-
-    
+    mixerLeft.reset();
+    mixerRight.reset();
+        
 }
 
 void FirstDistoAudioProcessor::releaseResources()
@@ -179,19 +190,10 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
     auto chainSettings = getChainSettings(apvts);
-    
-//    auto mixerLeft = MixControl();
-//    auto mixerRight = MixControl();
     
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
     mixerRight.setWetMixProportion(chainSettings.dryWet);
@@ -200,39 +202,26 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     auto leftBlock = block.getSingleChannelBlock(0);
     auto rightBlock = block.getSingleChannelBlock(1);
-    
-//    juce::dsp::ProcessContextReplacing<float> context(block);
+
     
     juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
     juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
-
-//    auto& leftInBlock = leftContext.getInputBlock();
-//    auto& leftOutBlock = leftContext.getOutputBlock();
+    juce::dsp::ProcessContextReplacing<float> context(block);
 //
-//    auto& rightInBlock = rightContext.getInputBlock();
-//    auto& rightOutBlock = rightContext.getOutputBlock();
-    
     mixerLeft.pushDrySamples(leftContext.getInputBlock());
     mixerRight.pushDrySamples(rightContext.getInputBlock());
     
-    leftChain.process(leftContext);
-    rightChain.process(rightContext);
+//    leftChain.process(leftContext);
+//    rightChain.process(rightContext);
+//    leftChain.process(context);
+    
+    leftConv.process(context);
+//    rightConv.process(rightContext);
     
     mixerLeft.mixWetSamples(leftContext.getOutputBlock());
     mixerRight.mixWetSamples(rightContext.getOutputBlock());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-//    {
-//        auto* channelData = buffer.getWritePointer (channel);
-//
-//        // ..do something to the data...
-//    }
+
 }
 
 //==============================================================================
