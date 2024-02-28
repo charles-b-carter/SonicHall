@@ -101,11 +101,18 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     spec.numChannels = 2;
     spec.sampleRate = sampleRate;
     
+    currentSampleRate = sampleRate;
+    
     stereoConv.prepare(spec);
+    
     mixerLeft.prepare(spec);
     mixerRight.prepare(spec);
+    
+    preDelay.reset();
+    preDelay.prepare(spec);
 
-      juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_stereo.wav");
+
+    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_stereo.wav");
     
 
     if(path.exists()){
@@ -116,9 +123,7 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     
     auto chainSettings = getChainSettings(apvts);
     
-    auto mixerLeft = MixControl();
-    auto mixerRight = MixControl();
-    
+    preDelay.setDelay(chainSettings.preDelayTime);
     
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
     mixerRight.setWetMixProportion(chainSettings.dryWet);
@@ -172,6 +177,9 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     auto chainSettings = getChainSettings(apvts);
     
+    preDelay.setDelay(chainSettings.preDelayTime * currentSampleRate);
+    
+    
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
     mixerRight.setWetMixProportion(chainSettings.dryWet);
     
@@ -179,23 +187,32 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     auto leftBlock = block.getSingleChannelBlock(0);
     auto rightBlock = block.getSingleChannelBlock(1);
-
-    
     juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
     juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
     
     juce::dsp::ProcessContextReplacing<float> context(block);
+    
 
     mixerLeft.pushDrySamples(leftContext.getInputBlock());
     mixerRight.pushDrySamples(rightContext.getInputBlock());
     
-
+    for(int channel = 0; channel < totalNumInputChannels; ++channel){
+        auto* inSamples = buffer.getReadPointer(channel);
+        auto* outSamples = buffer.getWritePointer(channel);
+        
+        for(int i = 0; i < buffer.getNumSamples(); ++i){
+            
+            float delayedSample = preDelay.popSample(channel);
+            float inDelay = inSamples[i] /** delayedSample*/;
+            preDelay.pushSample(channel, inDelay);
+            outSamples[i] = inSamples[i] + delayedSample;
+        }
+    }
+    
     stereoConv.process(context);
     
     mixerLeft.mixWetSamples(leftContext.getOutputBlock());
     mixerRight.mixWetSamples(rightContext.getOutputBlock());
-
-
 }
 
 //==============================================================================
@@ -229,6 +246,7 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
     ChainSettings settings;
     
    settings.dryWet = apvts.getRawParameterValue("Dry/Wet")->load();
+   settings.preDelayTime = apvts.getRawParameterValue("Pre-Delay")->load();
     
     return settings;
 }
@@ -239,6 +257,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
         
         layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("Dry/Wet", 1),"Dry/Wet",juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 1.f), 0.f));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("Pre-Delay", 1),"Pre-Delay", juce::NormalisableRange<float>(0.001f, 3.f, 0.01f, 1.f), 0.f));
         
         return layout;
     }

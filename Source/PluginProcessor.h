@@ -13,6 +13,7 @@
 struct ChainSettings
 {
     float dryWet { 0 };
+    float preDelayTime { 10 };
 };
 
 juce::dsp::ConvolutionMessageQueue queue;
@@ -20,6 +21,12 @@ juce::dsp::ConvolutionMessageQueue queue;
 
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
+
+using Convolution = juce::dsp::Convolution;
+using MixControl = juce::dsp::DryWetMixer<float>;
+using Delay = juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear>;
+//using StereoDelay = juce::dsp::ProcessorDuplicator<juce::dsp::DelayLine<float>>;
+//using ReverbChain = juce::dsp::ProcessorChain<StereoDelay>;
 //==============================================================================
 /**
 */
@@ -72,19 +79,18 @@ public:
     
 private:
     
-    using Convolution = juce::dsp::Convolution;
-    using MixControl = juce::dsp::DryWetMixer<float>;
-    
-//    juce::dsp::ProcessorChain<Convolution> leftChain, rightChain;
     Convolution stereoConv{juce::dsp::Convolution::Latency{128}, queue};
-    
     MixControl mixerLeft, mixerRight;
+//    StereoDelay dChain;
     
+    Delay preDelay{9600000};
     
+    double currentSampleRate{0.0};
     
     enum ChainPositions
     {
         DryWet,
+        PreDelayTime,
     };
     
     
