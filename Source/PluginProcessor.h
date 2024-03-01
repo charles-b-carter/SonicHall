@@ -16,17 +16,24 @@ struct ChainSettings
     float preDelayTime { 10 };
 };
 
-juce::dsp::ConvolutionMessageQueue queue;
+//caused error build: Command PhaseScriptExecution failed with a nonzero exit code
+//so i commented it out for now
+//juce::dsp::ConvolutionMessageQueue convQueue;
 
 
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
-using Convolution = juce::dsp::Convolution;
+using MyConvolution = juce::dsp::Convolution;
 using MixControl = juce::dsp::DryWetMixer<float>;
-using Delay = juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear>;
-//using StereoDelay = juce::dsp::ProcessorDuplicator<juce::dsp::DelayLine<float>>;
-//using ReverbChain = juce::dsp::ProcessorChain<StereoDelay>;
+using MyDelay = juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear>;
+
+enum ChainPositions
+{
+    DryWet,
+    PreDelayTime,
+};
+
 //==============================================================================
 /**
 */
@@ -79,19 +86,15 @@ public:
     
 private:
     
-    Convolution stereoConv{juce::dsp::Convolution::Latency{128}, queue};
+    MyConvolution stereoConv{juce::dsp::Convolution::Latency{128}};
     MixControl mixerLeft, mixerRight;
 //    StereoDelay dChain;
     
-    Delay preDelay{9600000};
+    MyDelay preDelay{9600000};
     
-    double currentSampleRate{0.0};
+    double currSampleRate{0.0};
     
-    enum ChainPositions
-    {
-        DryWet,
-        PreDelayTime,
-    };
+
     
     
     

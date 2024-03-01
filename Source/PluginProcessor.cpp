@@ -101,7 +101,7 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     spec.numChannels = 2;
     spec.sampleRate = sampleRate;
     
-    currentSampleRate = sampleRate;
+    currSampleRate = sampleRate;
     
     stereoConv.prepare(spec);
     
@@ -177,7 +177,7 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     auto chainSettings = getChainSettings(apvts);
     
-    preDelay.setDelay(chainSettings.preDelayTime * currentSampleRate);
+    preDelay.setDelay(chainSettings.preDelayTime * currSampleRate);
     
     
     mixerLeft.setWetMixProportion(chainSettings.dryWet);
@@ -199,9 +199,9 @@ void FirstDistoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for(int channel = 0; channel < totalNumInputChannels; ++channel){
         auto* inSamples = buffer.getReadPointer(channel);
         auto* outSamples = buffer.getWritePointer(channel);
-        
+
         for(int i = 0; i < buffer.getNumSamples(); ++i){
-            
+
             float delayedSample = preDelay.popSample(channel);
             float inDelay = inSamples[i] /** delayedSample*/;
             preDelay.pushSample(channel, inDelay);
@@ -223,22 +223,24 @@ bool FirstDistoAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* FirstDistoAudioProcessor::createEditor()
 {
-//    return new FirstDistoAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(this);
+    return new FirstDistoAudioProcessorEditor (*this);
+//    return new juce::GenericAudioProcessorEditor(this);
 }
 
 //==============================================================================
 void FirstDistoAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void FirstDistoAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if(tree.isValid()){
+        apvts.replaceState(tree);
+        //update what i need to update
+    }
 }
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
