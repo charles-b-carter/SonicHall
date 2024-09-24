@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="faOZJL" name="FirstDisto" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="faOZJL" name="SonicHall" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
-  <MAINGROUP id="mnCFLA" name="FirstDisto">
+  <MAINGROUP id="mnCFLA" name="SonicHall">
     <GROUP id="{11980739-A8F1-E3B5-5AF9-7AD9CBB8E1EA}" name="Source">
       <FILE id="orbtPV" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
