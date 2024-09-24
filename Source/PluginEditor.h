@@ -42,6 +42,9 @@ private:
     CustomSlider preDelaySlider,
     dryWetSlider;
     
+    juce::Label preDelayLabel;
+    juce::Label dryWetLabel;
+    
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
     

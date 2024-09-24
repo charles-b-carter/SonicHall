@@ -112,7 +112,7 @@ void FirstDistoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     preDelay.prepare(spec);
 
 
-    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/qv_room_stereo.wav");
+    juce::File path("/Users/charliecarter/Desktop/JUCE Projects/FirstDisto/Source/Resources/dp4_hall_stereo.wav");
     
 
     if(path.exists()){

@@ -20,6 +20,10 @@ dryWetSliderAttachment(audioProcessor.apvts, "Dry/Wet", dryWetSlider)
     for( auto* comp : getComps()){
         addAndMakeVisible(comp);
     }
+    preDelayLabel.setText("Pre-Delay Amount", juce::dontSendNotification);
+    preDelayLabel.attachToComponent(&preDelaySlider, false);
+    dryWetLabel.setText("Dry/Wet", juce::dontSendNotification);
+    dryWetLabel.attachToComponent(&dryWetSlider, false);
     
     setSize (400, 200);
 }
@@ -34,7 +38,7 @@ void FirstDistoAudioProcessorEditor::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
-    g.setColour (juce::Colours::whitesmoke);
+    g.setColour (juce::Colours::transparentWhite);
     g.setFont (15.0f);
 //    g.drawFittedText ("Quadraverb Room Reverb", getLocalBounds(), juce::Justification::centredTop, 1);
     
@@ -44,7 +48,7 @@ void FirstDistoAudioProcessorEditor::paint (juce::Graphics& g)
 void FirstDistoAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
-    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.5);
+    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.3);
     auto wetDryArea = bounds.removeFromTop(bounds.getHeight() * 0.2);
     auto spaceArea = bounds.removeFromTop(bounds.getHeight() * 0.5);
     auto preDelayArea = bounds.removeFromTop(bounds.getHeight() * 0.5);
@@ -58,6 +62,8 @@ void FirstDistoAudioProcessorEditor::resized()
 std::vector<juce::Component*> FirstDistoAudioProcessorEditor::getComps(){
     return{
         &preDelaySlider,
-        &dryWetSlider
+        &dryWetSlider,
+        &preDelayLabel,
+        &dryWetLabel
     };
 }
